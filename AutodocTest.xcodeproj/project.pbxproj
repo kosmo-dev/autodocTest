@@ -14,7 +14,7 @@
 		3D2542EC3078D6560032B3CA /* Exceptions for "AutodocTest" folder in "AutodocTest" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				App/Info.plist,
 			);
 			target = 3D2542D93078D6550032B3CA /* AutodocTest */;
 		};
