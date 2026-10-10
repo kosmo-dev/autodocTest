@@ -93,7 +93,14 @@ private extension NewsListVC {
 // MARK: - UICollectionViewDelegate
 extension NewsListVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-
+        switch dataSource?.itemIdentifier(for: indexPath) {
+        case .news(let id):
+            viewModel.showDetailNews(id)
+        case .loader:
+            return
+        case .none:
+            return
+        }
     }
 
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {

@@ -10,6 +10,8 @@ import UIKit
 
 final class MainSplitVC: UISplitViewController {
 
+    private lazy var newsDetailViewModel = NewsDetailViewModel()
+
     init() {
         super.init(style: .doubleColumn)
     }
@@ -23,15 +25,17 @@ final class MainSplitVC: UISplitViewController {
 
         delegate = self
 
-        #warning("Implement DI")
         let serverParams = ServerParams(server: "https://webapi.autodoc.ru", apiVersion: "/api")
         let networkClient = NetworkClient(serverParams: serverParams)
         let newsManager = NewsManager(networkClient: networkClient)
 
         let newsListViewModel = NewsListViewModel(newsManager: newsManager)
+        newsListViewModel.delegate = self
 
         let newsList = NewsListVC(viewModel: newsListViewModel)
-        let newsDetail = NewsDetailVC()
+
+        let newsDetailViewModel = newsDetailViewModel
+        let newsDetail = NewsDetailVC(viewModel: newsDetailViewModel)
 
         setViewController(newsList, for: .primary)
         setViewController(newsDetail, for: .secondary)
@@ -44,5 +48,12 @@ extension MainSplitVC: UISplitViewControllerDelegate {
         topColumnForCollapsingToProposedTopColumn proposedTopColumn: UISplitViewController.Column
     ) -> UISplitViewController.Column {
         return .primary
+    }
+}
+
+extension MainSplitVC: NewsListViewModelDelegate {
+    func didSelectNews(_ urlString: String) {
+        show(.secondary)
+        newsDetailViewModel.load(urlString: urlString)
     }
 }

@@ -8,8 +8,14 @@
 import Foundation
 import Combine
 
+protocol NewsListViewModelDelegate: AnyObject {
+    func didSelectNews(_ urlString: String)
+}
+
 @MainActor
 final class NewsListViewModel: ObservableObject {
+    weak var delegate: NewsListViewModelDelegate?
+
     @Published private(set) var news: [News] = []
 
     private(set) var loaderState: LoaderState = .loading
@@ -34,7 +40,8 @@ final class NewsListViewModel: ObservableObject {
     }
 
     func showDetailNews(_ id: Int) {
-
+        guard let news = news.first(where: { $0.id == id }) else { return }
+        delegate?.didSelectNews(news.fullUrl)
     }
 }
 
