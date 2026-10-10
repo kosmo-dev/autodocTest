@@ -11,6 +11,7 @@ final class NewsCell: UICollectionViewCell {
     var title: UILabel = {
         let title = UILabel()
         title.font = UIFont.preferredFont(forTextStyle: .title2)
+        title.numberOfLines = 0
         title.translatesAutoresizingMaskIntoConstraints = false
         return title
     }()
@@ -31,7 +32,7 @@ final class NewsCell: UICollectionViewCell {
         return date
     }()
 
-    var image: UIImageView = {
+    var newsImage: UIImageView = {
         let image = UIImageView()
         image.contentMode = .scaleAspectFill
         image.heightAnchor.constraint(equalToConstant: 150).isActive = true
@@ -49,6 +50,7 @@ final class NewsCell: UICollectionViewCell {
         return vStack
     }()
 
+    var imageTask: Task<Void, Error>?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -59,10 +61,17 @@ final class NewsCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        imageTask?.cancel()
+        imageTask = nil
+        newsImage.image = nil
+    }
+
     func configureView(with news: News) {
         title.text = news.title
         newsDescription.text = news.description
-        image.image = UIImage(systemName: "photo")
+        loadImage(for: news)
 
         if let date = news.publishedDate {
             self.date.text = date.formatted(date: .abbreviated, time: .omitted)
@@ -72,7 +81,7 @@ final class NewsCell: UICollectionViewCell {
     }
 
     private func setupUI() {
-        [title, date, newsDescription, image].forEach { vStack.addArrangedSubview($0) }
+        [title, date, newsDescription, newsImage].forEach { vStack.addArrangedSubview($0) }
         contentView.addSubview(vStack)
 
         NSLayoutConstraint.activate([
@@ -81,5 +90,28 @@ final class NewsCell: UICollectionViewCell {
             vStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             vStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
         ])
+    }
+
+    private func loadImage(for news: News) {
+        imageTask?.cancel()
+        imageTask = Task {
+            do {
+                if let imageUrl = news.titleImageUrl {
+                    let image = try await ImageLoader.shared.loadImage(imageUrl)
+                    guard !Task.isCancelled else { return }
+                    newsImage.image = image
+                } else {
+                    handleEmptyImage()
+                }
+            } catch {
+                handleEmptyImage()
+            }
+        }
+    }
+
+    private func handleEmptyImage() {
+        layoutIfNeeded()
+        newsImage.heightAnchor.constraint(equalToConstant: 0).isActive = true
+        setNeedsLayout()
     }
 }
