@@ -30,7 +30,7 @@ extension NewsManager: NewsManagerProtocol {
     func fetchNewsPage() async throws {
         guard hasMoreNews else { return }
 
-        let dto = try await fetchPage(from: news.count)
+        let dto = try await fetchPage(from: news.count + 1)
         totalCount = dto.totalCount ?? pageSize
 
         let news = dto.news.map { News(dto: $0) }
