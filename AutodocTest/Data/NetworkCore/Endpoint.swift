@@ -12,8 +12,21 @@ protocol Endpoint: Sendable {
     var method: HTTPMethod { get }
     var header: [String: String]? { get }
     var body: [String: Sendable]? { get }
-    var bodyData: Data? { get }
     var queryItems: [URLQueryItem]? { get }
+}
+
+extension Endpoint {
+    var header: [String: String]? {
+        nil
+    }
+
+    var body: [String: Sendable]? {
+        nil
+    }
+
+    var queryItems: [URLQueryItem]? {
+        nil
+    }
 }
 
 enum HTTPMethod: String, Sendable {

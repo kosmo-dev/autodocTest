@@ -6,5 +6,5 @@
 //
 
 protocol NetworkRouting {
-    func sendRequest<T: Decodable & Sendable>(_ endpoint: Endpoint, type: T.Type) async throws -> T
+    func sendRequest<T: Decodable>(_ endpoint: Endpoint, type: T.Type) async throws -> T
 }
