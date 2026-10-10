@@ -37,7 +37,6 @@ final class NewsListVC: UIViewController {
 
         configureDataSource()
         setupBindings()
-        viewModel.fetchNextPage()
     }
 }
 
@@ -52,7 +51,9 @@ private extension NewsListVC {
 
         let loaderCell = UICollectionView.CellRegistration<LoaderCell, Loader> { [weak self] cell, indexPath, itemIdentifier in
             guard let self else { return }
-
+            let state = viewModel.loaderState
+            cell.delegate = self
+            cell.configure(with: state)
         }
 
         dataSource = UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
@@ -93,6 +94,19 @@ private extension NewsListVC {
 extension NewsListVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
 
+    }
+
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        if dataSource?.itemIdentifier(for: indexPath) == .loader(.loading) {
+            viewModel.fetchNextPage()
+        }
+    }
+}
+
+// MARK: - LoaderCellDelegate
+extension NewsListVC: LoaderCellDelegate {
+    func refetchButtonTapped() {
+        viewModel.fetchNextPage()
     }
 }
 

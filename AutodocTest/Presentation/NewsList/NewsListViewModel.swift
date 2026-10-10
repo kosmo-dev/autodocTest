@@ -23,13 +23,21 @@ final class NewsListViewModel: ObservableObject {
 
     func fetchNextPage() {
         Task {
-            try await newsManager.fetchNewsPage()
-            self.loaderState = newsManager.hasMoreNews ? .loading : .empty
-            self.news = newsManager.getNews()
+            do {
+                try await newsManager.fetchNewsPage()
+                self.loaderState = newsManager.hasMoreNews ? .loading : .empty
+                self.news = newsManager.getAllNews()
+            } catch {
+                loaderState = .error
+            }
         }
     }
 
     func showDetailNews(_ id: Int) {
 
     }
+}
+
+// MARK: - Private
+private extension NewsListViewModel {
 }

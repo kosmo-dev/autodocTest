@@ -8,7 +8,7 @@
 import UIKit
 
 final class NewsCell: UICollectionViewCell {
-    var title: UILabel = {
+    private var title: UILabel = {
         let title = UILabel()
         title.font = UIFont.preferredFont(forTextStyle: .title2)
         title.numberOfLines = 0
@@ -16,7 +16,7 @@ final class NewsCell: UICollectionViewCell {
         return title
     }()
 
-    var newsDescription: UILabel = {
+    private var newsDescription: UILabel = {
         let description = UILabel()
         description.font = UIFont.preferredFont(forTextStyle: .body)
         description.numberOfLines = 0
@@ -24,7 +24,7 @@ final class NewsCell: UICollectionViewCell {
         return description
     }()
 
-    var date: UILabel = {
+    private var date: UILabel = {
         let date = UILabel()
         date.font = UIFont.preferredFont(forTextStyle: .caption1)
         date.textColor = UIColor.secondaryLabel
@@ -32,16 +32,16 @@ final class NewsCell: UICollectionViewCell {
         return date
     }()
 
-    var newsImage: UIImageView = {
+    private var newsImage: UIImageView = {
         let image = UIImageView()
         image.contentMode = .scaleAspectFill
-        image.heightAnchor.constraint(equalToConstant: 150).isActive = true
         image.clipsToBounds = true
+        image.heightAnchor.constraint(equalToConstant: 150).isActive = true
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
     }()
 
-    var vStack: UIStackView = {
+    private var vStack: UIStackView = {
         let vStack = UIStackView()
         vStack.axis = .vertical
         vStack.spacing = 8
@@ -50,7 +50,7 @@ final class NewsCell: UICollectionViewCell {
         return vStack
     }()
 
-    var imageTask: Task<Void, Error>?
+    private var imageTask: Task<Void, Error>?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -100,18 +100,13 @@ final class NewsCell: UICollectionViewCell {
                     let image = try await ImageLoader.shared.loadImage(imageUrl)
                     guard !Task.isCancelled else { return }
                     newsImage.image = image
+                    newsImage.isHidden = false
                 } else {
-                    handleEmptyImage()
+                    newsImage.isHidden = true
                 }
             } catch {
-                handleEmptyImage()
+                newsImage.isHidden = true
             }
         }
-    }
-
-    private func handleEmptyImage() {
-        layoutIfNeeded()
-        newsImage.heightAnchor.constraint(equalToConstant: 0).isActive = true
-        setNeedsLayout()
     }
 }
