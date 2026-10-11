@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol Endpoint: Sendable {
+nonisolated protocol Endpoint: Sendable {
     var path: String { get }
     var method: HTTPMethod { get }
     var header: [String: String]? { get }

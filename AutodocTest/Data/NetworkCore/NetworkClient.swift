@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class NetworkClient {
+nonisolated final class NetworkClient {
     let urlSession: URLSession
     let serverParams: ServerParams
     let jsonDecoder: JSONDecoder
@@ -21,19 +21,20 @@ final class NetworkClient {
 
 // MARK: - NetworkRouting
 extension NetworkClient: NetworkRouting {
+    @concurrent
     func sendRequest<T: Decodable & Sendable>(_ endpoint: any Endpoint, type: T.Type) async throws -> T {
         let request = try RequestFactory.makeRequest(for: endpoint, serverParams: serverParams)
 
         let (data, response) = try await urlSession.data(for: request)
 
-        let dto = try handleResponse(data: data, response: response, type: type)
+        let dto = try await handleResponse(data: data, response: response, type: type)
         return dto
     }
 }
 
 // MARK: - Private
 private extension NetworkClient {
-    func handleResponse<T: Decodable>(data: Data, response: URLResponse, type: T.Type) throws -> T {
+    nonisolated func handleResponse<T: Decodable>(data: Data, response: URLResponse, type: T.Type) async throws -> T {
         guard let httpResponse = response as? HTTPURLResponse else { throw NetworkError.invalidResponse }
 
         switch httpResponse.statusCode {
@@ -45,7 +46,7 @@ private extension NetworkClient {
         }
     }
 
-    func decode<T: Decodable>(data: Data, type: T.Type) throws -> T {
+    nonisolated func decode<T: Decodable>(data: Data, type: T.Type) throws -> T {
         let dto = try jsonDecoder.decode(type, from: data)
         return dto
     }

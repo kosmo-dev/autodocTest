@@ -16,6 +16,8 @@ struct News {
     let titleImageUrl: String?
     let category: String?
 
+    typealias ID = Int
+
     init(
         id: Int,
         title: String,

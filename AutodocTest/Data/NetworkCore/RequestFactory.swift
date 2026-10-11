@@ -7,15 +7,18 @@
 
 import Foundation
 
-struct RequestFactory {
+nonisolated struct RequestFactory {
     static func makeRequest(for endpoint: Endpoint, serverParams: ServerParams) throws -> URLRequest {
-        var urlComponents = URLComponents()
+        guard var urlComponents = URLComponents(string: serverParams.server) else { throw NetworkError.invalidURL }
 
-        if endpoint.method == .get {
+        if endpoint.method == .get,
+           let queryItems = urlComponents.queryItems,
+           !queryItems.isEmpty
+        {
             urlComponents.queryItems = endpoint.queryItems
         }
 
-        urlComponents.path = serverParams.fullUrl + endpoint.path
+        urlComponents.path = serverParams.apiVersion + endpoint.path
 
         guard let url = urlComponents.url else {
             throw NetworkError.invalidURL

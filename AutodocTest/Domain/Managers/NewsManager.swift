@@ -11,8 +11,10 @@ final class NewsManager {
 
     private let pageSize: Int
     private var totalCount: Int?
+    private var nextPage: Int = 1
 
     private var news: [News] = []
+    private var newsIds: Set<News.ID> = []
 
     init(networkClient: NetworkRouting) {
         self.networkClient = networkClient
@@ -21,39 +23,45 @@ final class NewsManager {
 }
 
 // MARK: - NewsManagerProtocol
-extension NewsManager: NewsManagerProtocol {
+extension NewsManager: NewsManagerProtocol {    
     var hasMoreNews: Bool {
         guard let totalCount else { return true }
-        return news.count < totalCount
+        return (nextPage - 1) * pageSize < totalCount
     }
 
     func fetchNewsPage() async throws {
         guard hasMoreNews else { return }
 
-        let dto = try await fetchPage(from: news.count)
-        totalCount = dto.totalCount ?? pageSize
-
-        let news = dto.news.map { News(dto: $0) }
-        self.news.append(contentsOf: news)
+        let dto = try await fetchPage()
+        let mappedNews = mapNews(dto)
+        self.news.append(contentsOf: mappedNews)
     }
 
-    func getNews() -> [News] {
+    func getAllNews() -> [News] {
         return news
     }
 }
 
 // MARK: - Private
 private extension NewsManager {
-    func fetchPage(from offset: Int) async throws -> NewsListDTO {
-        let to: Int
-
-        if let totalCount {
-            to = min(totalCount, offset + pageSize)
-        } else {
-            to = offset + pageSize
-        }
-
-        let dto = try await networkClient.sendRequest(GetNewsListEndpoint(from: offset, to: to), type: NewsListDTO.self)
+    func fetchPage() async throws -> NewsListDTO {
+        let dto = try await networkClient.sendRequest(GetNewsListEndpoint(page: nextPage, maxItems: pageSize), type: NewsListDTO.self)
         return dto
+    }
+
+    func mapNews(_ dto: NewsListDTO) -> [News] {
+        totalCount = dto.totalCount ?? pageSize
+        nextPage += 1
+
+        var newsModel: [News] = []
+
+        for item in dto.news {
+            guard !newsIds.contains(item.id) else { continue }
+
+            let news = News(dto: item)
+            newsModel.append(news)
+            newsIds.insert(news.id)
+        }
+        return newsModel
     }
 }

@@ -10,5 +10,5 @@ protocol NewsManagerProtocol {
     var hasMoreNews: Bool { get }
 
     func fetchNewsPage() async throws
-    func getNews() -> [News]
+    func getAllNews() -> [News]
 }
