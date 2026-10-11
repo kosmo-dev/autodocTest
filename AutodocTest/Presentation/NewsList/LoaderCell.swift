@@ -22,10 +22,13 @@ final class LoaderCell: UICollectionViewCell {
         return loader
     }()
 
-    private var button: UIButton = {
-        let button = UIButton()
+    private lazy var button: UIButton = {
+        let button = UIButton(configuration: .tinted())
         button.isHidden = true
-        button.setTitle("Refetch", for: .normal)
+        button.configuration?.title = "Обновить"
+        button.addAction(UIAction(handler: { [weak self] _ in
+            self?.delegate?.refetchButtonTapped()
+        }), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()

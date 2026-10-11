@@ -15,7 +15,8 @@ final class NewsDetailVC: UIViewController {
 
     private var placeholder: UILabel = {
         let text = UILabel()
-        text.text = "Choose news"
+        text.text = "Выберите новость для просмотра"
+        text.numberOfLines = 0
         text.font = UIFont.preferredFont(forTextStyle: .title1)
         text.translatesAutoresizingMaskIntoConstraints = false
         return text
@@ -50,15 +51,19 @@ final class NewsDetailVC: UIViewController {
         setupUI()
         setupBinding()
     }
-
-    override func viewDidDisappear(_ animated: Bool) {
-        viewModel.onDisappear()
-    }
 }
 
 extension NewsDetailVC: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         viewModel.pageDidLoad()
+    }
+
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
+        viewModel.onDisappear()
+    }
+
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) {
+        viewModel.onDisappear()
     }
 }
 
@@ -90,16 +95,19 @@ private extension NewsDetailVC {
     }
 
     func load() {
-        guard let request = viewModel.urlRequest else { return }
-
         switch viewModel.state {
         case .loaded:
             loader.stopAnimating()
+            placeholder.isHidden = true
+            webView.isHidden = false
+
         case .loading:
+            guard let request = viewModel.urlRequest else { return }
             placeholder.isHidden = true
             loader.startAnimating()
-            webView.isHidden = false
+            webView.isHidden = true
             webView.load(request)
+
         case .placeholder:
             webView.isHidden = true
             loader.stopAnimating()

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RequestFactory {
+nonisolated struct RequestFactory {
     static func makeRequest(for endpoint: Endpoint, serverParams: ServerParams) throws -> URLRequest {
         guard var urlComponents = URLComponents(string: serverParams.server) else { throw NetworkError.invalidURL }
 

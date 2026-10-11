@@ -62,7 +62,6 @@ private extension NewsManager {
             newsModel.append(news)
             newsIds.insert(news.id)
         }
-
         return newsModel
     }
 }

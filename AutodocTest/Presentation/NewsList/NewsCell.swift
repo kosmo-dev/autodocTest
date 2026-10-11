@@ -36,6 +36,7 @@ final class NewsCell: UICollectionViewCell {
         let image = UIImageView()
         image.contentMode = .scaleAspectFill
         image.clipsToBounds = true
+        image.layer.cornerRadius = 8
         image.heightAnchor.constraint(equalToConstant: 150).isActive = true
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
@@ -68,10 +69,10 @@ final class NewsCell: UICollectionViewCell {
         newsImage.image = nil
     }
 
-    func configureView(with news: News) {
+    func configureView(with news: News, imagePixelSize: CGFloat) {
         title.text = news.title
         newsDescription.text = news.description
-        loadImage(for: news)
+        loadImage(for: news, imagePixelSize: imagePixelSize)
 
         if let date = news.publishedDate {
             self.date.text = date.formatted(date: .abbreviated, time: .omitted)
@@ -92,19 +93,18 @@ final class NewsCell: UICollectionViewCell {
         ])
     }
 
-    private func loadImage(for news: News) {
+    private func loadImage(for news: News, imagePixelSize: CGFloat) {
         imageTask?.cancel()
+        newsImage.isHidden = news.titleImageUrl == nil
         imageTask = Task {
             do {
                 if let imageUrl = news.titleImageUrl {
-                    let image = try await ImageLoader.shared.loadImage(imageUrl)
+                    let image = try await ImageLoader.shared.loadImage(imageUrl, maxPixelSize: imagePixelSize)
                     guard !Task.isCancelled else { return }
                     newsImage.image = image
-                    newsImage.isHidden = false
-                } else {
-                    newsImage.isHidden = true
                 }
             } catch {
+                guard !Task.isCancelled else { return }
                 newsImage.isHidden = true
             }
         }

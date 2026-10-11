@@ -34,7 +34,6 @@ final class MainSplitVC: UISplitViewController {
 
         let newsList = NewsListVC(viewModel: newsListViewModel)
 
-        let newsDetailViewModel = newsDetailViewModel
         let newsDetail = NewsDetailVC(viewModel: newsDetailViewModel)
 
         setViewController(newsList, for: .primary)

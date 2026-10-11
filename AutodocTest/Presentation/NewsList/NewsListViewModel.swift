@@ -18,22 +18,29 @@ final class NewsListViewModel: ObservableObject {
 
     @Published private(set) var news: [News] = []
 
-    private(set) var loaderState: LoaderState = .loading
+    @Published private(set) var loaderState: LoaderState = .loading
 
     private var newsManager: NewsManagerProtocol
     private var cancellables: Set<AnyCancellable> = []
+    private var fetchTask: Task<Void, Error>?
 
     init(newsManager: NewsManagerProtocol) {
         self.newsManager = newsManager
     }
 
     func fetchNextPage() {
-        Task {
+        guard fetchTask == nil else { return }
+
+        loaderState = .loading
+        fetchTask = Task {
+            defer { fetchTask = nil }
+
             do {
                 try await newsManager.fetchNewsPage()
                 self.loaderState = newsManager.hasMoreNews ? .loading : .empty
                 self.news = newsManager.getAllNews()
             } catch {
+                guard !Task.isCancelled else { return }
                 loaderState = .error
             }
         }
@@ -43,8 +50,4 @@ final class NewsListViewModel: ObservableObject {
         guard let news = news.first(where: { $0.id == id }) else { return }
         delegate?.didSelectNews(news.fullUrl)
     }
-}
-
-// MARK: - Private
-private extension NewsListViewModel {
 }

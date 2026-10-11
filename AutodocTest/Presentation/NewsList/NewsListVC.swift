@@ -44,9 +44,13 @@ final class NewsListVC: UIViewController {
 private extension NewsListVC {
     func configureDataSource() {
         let newsCell = UICollectionView.CellRegistration<NewsCell, News.ID> { [weak self] cell, indexPath, itemIdentifier in
-            guard let self else { return }
-            let news = self.viewModel.news[indexPath.item]
-            cell.configureView(with: news)
+            guard let self,
+                  let news = self.viewModel.news.first(where: { $0.id == itemIdentifier })
+            else { return }
+
+            let imageSize = CGSize(width: collectionView.bounds.width, height: 150)
+            let maxPixelSize = max(imageSize.width, imageSize.height) * collectionView.traitCollection.displayScale
+            cell.configureView(with: news, imagePixelSize: maxPixelSize)
         }
 
         let loaderCell = UICollectionView.CellRegistration<LoaderCell, Loader> { [weak self] cell, indexPath, itemIdentifier in
@@ -69,6 +73,14 @@ private extension NewsListVC {
     func setupBindings() {
         viewModel.$news
             .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.applySnapshot()
+            }
+            .store(in: &cancellables)
+
+        viewModel.$loaderState
+            .receive(on: DispatchQueue.main)
+            .removeDuplicates()
             .sink { [weak self] _ in
                 self?.applySnapshot()
             }
